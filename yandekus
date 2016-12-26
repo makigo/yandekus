@@ -1,0 +1,164 @@
+#!/bin/bash
+#
+# 2016 (c) iMakhonin (Igor Makhonin)
+# Email: <work.makhonin@gmail.com>
+#
+###
+
+set -e
+
+NAME=Yandekus
+APPNAME=yandekus
+VERSION=2.2
+RELEASE=07.08.2016
+EMAIL=work.makhonin@gmail.com
+DATE=`date +%d/%m`
+COLLECT="Сбор данных:"
+
+txtund=$(tput sgr 0 1)          # Underline
+txtbld=$(tput bold)             # Bold
+bldgrn=${txtbld}$(tput setaf 2) # Bold Green
+bldyel=${txtbld}$(tput setaf 3) # Bold Yellow
+bldgyn=${txtbld}$(tput setaf 6) # Bold Gyn
+red=$(tput setaf 1)             # Red
+grn=$(tput setaf 2)             # Green
+yel=$(tput setaf 3)             # Yello
+blu=$(tput setaf 4)             # Blue
+pur=$(tput setaf 5)             # Purple
+gyn=$(tput setaf 6)             # Gyner
+wht=$(tput setaf 7)             # White
+rst=$(tput sgr0)                # Reset
+
+  pbar0="$COLLECT   0% [${blu}.............................${rst}]"
+ pbar10="$COLLECT  10% [${grn}==>${blu}..........................${rst}]"
+ pbar20="$COLLECT  20% [${grn}=====>${blu}.......................${rst}]"
+ pbar25="$COLLECT  25% [${grn}=======>${blu}.....................${rst}]"
+ pbar30="$COLLECT  30% [${grn}=========>${blu}...................${rst}]"
+ pbar35="$COLLECT  35% [${grn}===========>${blu}.................${rst}]"
+ pbar40="$COLLECT  40% [${grn}============>${blu}................${rst}]"
+ pbar50="$COLLECT  50% [${grn}===============>${blu}.............${rst}]"
+ pbar60="$COLLECT  60% [${grn}=================>${blu}...........${rst}]"
+ pbar65="$COLLECT  65% [${grn}===================>${blu}.........${rst}]"
+ pbar70="$COLLECT  70% [${grn}====================>${blu}........${rst}]"
+ pbar75="$COLLECT  75% [${grn}======================>${blu}......${rst}]"
+ pbar80="$COLLECT  80% [${grn}========================>${blu}....${rst}]"
+ pbar90="$COLLECT  90% [${grn}==========================>${blu}..${rst}]OQ"
+pbar100="$COLLECT ${grn}100%${rst} [${grn}=============================${rst}]"
+
+### ─ ┬ ├ ≥ ┤ ▒ ° ± ┘ ┐ ┌ ≤ │ ┴ ┼ └
+
+DEP_1=curl
+DEP_2=lynx
+
+depend_1() {
+  check_1=`whereis $DEP_1 | awk '{ print $2 }'`
+
+  if [ "$check_1" = "" ]; then
+    echo
+    echo "*** Внимание! Для полноценной работы приложения \"$NAME\""
+    echo "    Вам потребуется установить зависимотси \"sudo apt-get install $DEP_1\""
+    echo
+    exit 1
+  fi
+}
+
+depend_2() {
+  check_2=`whereis $DEP_2 | awk '{ print $2 }'`
+
+  if [ "$check_2" = "" ]; then
+    echo
+    echo "*** Внимание! Для полноценной работы приложения \"$NAME\""
+    echo "    Вам потребуется установить зависимотси \"sudo apt-get install $DEP_2\""
+    echo
+    exit 1
+  fi
+}
+
+if [ "$1" == "--help"  ] && [ -z "$2" ]; then
+  echo "$NAME $VERSION, программа получения курса валют и погодных данных c Яндекс."
+  echo "Использование: $APPNAME [КЛЮЧ]... [ГОРОД]..."
+  echo
+  echo "  -s,  --stock       Курсы валют."
+  echo "  -p,  --pogoda=msk  Метео данные по городу Москва."
+  echo "  -p,  --pogoda=spb  Метео данные по городу Санкт-Петербург."
+  echo "       --help        Показать эту справку и выйти."
+  echo "       --version     Показать информацию о версии и выйти."
+  echo
+  echo "Об ошибках в «$APPNAME» сообщайте по адресу <$EMAIL>"
+  exit 1
+
+elif [ "$1" == "--version"  ] && [ -z "$2" ]; then
+  echo "Версия: $VERSION, дата релиза: $RELEASE"
+  exit 1
+
+elif [ "$1" == "-s"  ] || [ "$1" == "--stock"  ] && [ -z "$2" ]; then
+  depend_1
+
+  a="curl --silent https://yandex.ru"
+  echo -ne "$pbar0\r"
+  ya_usd=$(exec $a | awk -F"stocks__link" '/USD/ {print $2}' | cut -d "<" -f14 | cut -d ">" -f2)
+  echo -ne "$pbar50\r"
+  ya_eur=$(exec $a | awk -F"stocks__link" '/EUR/ {print $3}' | cut -d "<" -f14 | cut -d ">" -f2)
+  echo -ne "$pbar100\r"
+  sleep 0.3
+  echo -e "\n"
+  echo "┌───────────────── ${bldgyn}Курсы валют${rst} ─────────────────┐"
+  echo "│        ${bldyel}Доллар${rst} ${pur}...${rst} ${yel}на $DATE${rst} ${pur}...${rst} ${txtbld}$ya_usd${rst} р.  	│"
+  echo "│          ${bldyel}Евро${rst} ${pur}...${rst} ${yel}на $DATE${rst} ${pur}...${rst} ${txtbld}$ya_eur${rst} р.  	│"
+  echo "└───────────────────────────────────────────────┘"
+  echo
+
+elif [ "$1" == "-p" ] || [ "$1" == "--pogoda" ] && [ ! -z "$2" ];then
+  depend_1
+  depend_2
+
+    if [ "$2" == "msk" ]; then
+      CITY=moscow
+      CODE=213
+      ya_city=Москва
+    elif [ "$2" == "spb" ]; then
+      CITY=saint-petersburg
+      CODE=2
+      ya_city=Петербург
+    fi
+  b="lynx -dump https://pogoda.yandex.ru/$CITY/"
+  c="curl --silent https://yandex.ru/pogoda/$CODE"
+  echo -ne "$pbar0\r"
+  ya_temp=$(exec $c | awk -F"type_now" '/°C/ { print $3 }' | cut -d ">" -f2 | cut -d "<" -f1)
+  #ya_temp=$(exec $b | awk '/°C/ {print $1}')
+  echo -ne "$pbar20\r"
+  ya_rise=$(exec $c | awk -F"info-label" '{ print $2 }' | cut -d ">" -f3 | cut -d "<" -f1)
+  echo -ne "$pbar35\r"
+  ya_sunset=$(exec $c | awk -F"type_sunset\">" '{ print $2 }' | cut -d ">" -f2 | cut -d "<" -f1)
+  echo -ne "$pbar50\r"
+  #ya_wind=$(exec $c | awk -F"info-label" '{ print $5 }' | cut -d ">" -f3 | cut -d "<" -f1)
+  ya_wind=$(exec $b | awk '/Ветер:/ {print $2 " " $3 " " $4}')
+  echo -ne "$pbar65\r"
+  ya_prs=$(exec $b | awk '/Давление:/ {print $2 " " $3 " " $4 " " $5}')
+  echo -ne "$pbar80\r"
+  ya_hum=$(exec $c | awk -F"info-label" '{ print $6 }' | cut -d ">" -f3 | cut -d "<" -f1)
+  #ya_hum=$(exec $b | awk '/Влажность:/ {print $2}')
+  echo -ne "$pbar100\r"
+    if [ "$ya_wind" == "Штиль  " ]; then
+      tab="	"
+    else
+      tab=""
+    fi
+  sleep 0.3
+  echo -e "\n"
+  echo "┌─────────────────── ${bldgyn}Погода${rst} ────────────────────┐"
+  echo "│          ${bldgrn}Город${rst} ${pur}..............${rst} ${bldgrn}$ya_city${rst}  	│"
+  echo "│    ${bldyel}Температура${rst} ${pur}..............${rst} ${txtbld}$ya_temp${rst}    	│"
+  echo "│      ${bldyel}Влажность${rst} ${pur}..............${rst} ${txtbld}$ya_hum${rst}		│"
+  echo "│       ${bldyel}Давление${rst} ${pur}..............${rst} ${txtbld}$ya_prs${rst} 	│"
+  echo "│          ${bldyel}Ветер${rst} ${pur}..............${rst} ${txtbld}$ya_wind${tab}${rst}	│"
+  echo "│         ${bldyel}Восход${rst} ${pur}..............${rst} ${txtbld}$ya_rise${rst}       	│"
+  echo "│          ${bldyel}Закат${rst} ${pur}..............${rst} ${txtbld}$ya_sunset${rst}     	│"
+  echo "└───────────────────────────────────────────────┘"
+  echo
+
+else
+echo "Используйте помощь: --help"
+fi
+
+exit 0
