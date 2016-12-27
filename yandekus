@@ -188,8 +188,8 @@ stock() {
   sleep 0.3
   echo -e "\n"
   echo "┌───────────────[ ${bldgyn}$NAME v$VERSION${rst} ]───────────────┐"
-  echo "│        ${bldyel}Доллар${rst} ${pur}...${rst} ${yel}на $DATE${rst} ${pur}...${rst} ${txtbld}$ya_usd${rst} р.   │"
-  echo "│          ${bldyel}Евро${rst} ${pur}...${rst} ${yel}на $DATE${rst} ${pur}...${rst} ${txtbld}$ya_eur${rst} р.   │"
+  echo "│        ${bldyel}Доллар${rst} ${pur}...${rst} ${yel}на $DATE${rst} ${pur}...${rst} ${txtbld}$ya_usd${rst} р.       │"
+  echo "│          ${bldyel}Евро${rst} ${pur}...${rst} ${yel}на $DATE${rst} ${pur}...${rst} ${txtbld}$ya_eur${rst} р.       │"
   echo "│                  ${bldgyn}Курсы валют${rst}                  │"
   echo "└───────────────────────────────────────────────┘"
   #echo
@@ -204,7 +204,7 @@ if [ "$1" == "-h"  ] || [ "$1" == "--help"  ] && [ -z "$2" ]; then
   echo
   echo "Команды на выбор:"
   echo "  -s,  --stock                 Отобразить курсы валют."
-  echo "  -p,  --pogoda [name|code]    Отобразить полные метео данные используя код или имя города на англ."
+  echo "  -p,  --pogoda [name|codec]   Отобразить полные метео данные используя код или имя города на англ."
   echo "  -w,  --weather [name|code]   Отобразить полные метео данные используя код или имя города на англ."
   echo "  -c,  --city [name city]      Отобразить код города (Используйте: имя города на англ.)."
   echo "  -c,  --code [code city]      Отобразить имя города (Используйте: код)."
