@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# 2016 (c) iMakhonin (Igor Makhonin)
+# Author iMakhonin aka Makigo (Igor Makhonin)
 # Email: <work.makhonin@gmail.com>
 #
 ###
@@ -9,11 +9,17 @@ set -e
 
 NAME=Yandekus
 APPNAME=yandekus
-VERSION=2.2
-RELEASE=07.08.2016
+VERSION=3.0
+RELEASE=27.12.2016
 EMAIL=work.makhonin@gmail.com
 DATE=`date +%d/%m`
+SOURCE="https://yandex.ru"
+WEATHER="pogoda"
+ERROR_EXT=" * Некорректные данные, исправьте ошибку."
+ERROR_INT="Такой страницы не существует"
+HELP="Используйте помощь: -h или --help"
 COLLECT="Сбор данных:"
+DEP_1=curl
 
 txtund=$(tput sgr 0 1)          # Underline
 txtbld=$(tput bold)             # Bold
@@ -45,120 +51,233 @@ rst=$(tput sgr0)                # Reset
  pbar90="$COLLECT  90% [${grn}==========================>${blu}..${rst}]OQ"
 pbar100="$COLLECT ${grn}100%${rst} [${grn}=============================${rst}]"
 
-### ─ ┬ ├ ≥ ┤ ▒ ° ± ┘ ┐ ┌ ≤ │ ┴ ┼ └
+### ─ ┬ ├ ≥ ┤ ▒ ° ± ┘ ┐ ┌ ≤ │ ┴ ┼ └ ###
 
-DEP_1=curl
-DEP_2=lynx
 
-depend_1() {
-  check_1=`whereis $DEP_1 | awk '{ print $2 }'`
-
-  if [ "$check_1" = "" ]; then
-    echo
-    echo "*** Внимание! Для полноценной работы приложения \"$NAME\""
-    echo "    Вам потребуется установить зависимотси \"sudo apt-get install $DEP_1\""
-    echo
-    exit 1
-  fi
+### Функции
+footer() {
+  echo "Данные загружены за $SECONDS сек. Источник - ${SOURCE:8}"
 }
 
-depend_2() {
-  check_2=`whereis $DEP_2 | awk '{ print $2 }'`
-
-  if [ "$check_2" = "" ]; then
-    echo
-    echo "*** Внимание! Для полноценной работы приложения \"$NAME\""
-    echo "    Вам потребуется установить зависимотси \"sudo apt-get install $DEP_2\""
-    echo
-    exit 1
-  fi
-}
-
-if [ "$1" == "--help"  ] && [ -z "$2" ]; then
-  echo "$NAME $VERSION, программа получения курса валют и погодных данных c Яндекс."
-  echo "Использование: $APPNAME [КЛЮЧ]... [ГОРОД]..."
-  echo
-  echo "  -s,  --stock       Курсы валют."
-  echo "  -p,  --pogoda=msk  Метео данные по городу Москва."
-  echo "  -p,  --pogoda=spb  Метео данные по городу Санкт-Петербург."
-  echo "       --help        Показать эту справку и выйти."
-  echo "       --version     Показать информацию о версии и выйти."
-  echo
-  echo "Об ошибках в «$APPNAME» сообщайте по адресу <$EMAIL>"
-  exit 1
-
-elif [ "$1" == "--version"  ] && [ -z "$2" ]; then
-  echo "Версия: $VERSION, дата релиза: $RELEASE"
-  exit 1
-
-elif [ "$1" == "-s"  ] || [ "$1" == "--stock"  ] && [ -z "$2" ]; then
-  depend_1
-
-  a="curl --silent https://yandex.ru"
-  echo -ne "$pbar0\r"
-  ya_usd=$(exec $a | awk -F"stocks__link" '/USD/ {print $2}' | cut -d "<" -f14 | cut -d ">" -f2)
-  echo -ne "$pbar50\r"
-  ya_eur=$(exec $a | awk -F"stocks__link" '/EUR/ {print $3}' | cut -d "<" -f14 | cut -d ">" -f2)
-  echo -ne "$pbar100\r"
-  sleep 0.3
-  echo -e "\n"
-  echo "┌───────────────── ${bldgyn}Курсы валют${rst} ─────────────────┐"
-  echo "│        ${bldyel}Доллар${rst} ${pur}...${rst} ${yel}на $DATE${rst} ${pur}...${rst} ${txtbld}$ya_usd${rst} р.  	│"
-  echo "│          ${bldyel}Евро${rst} ${pur}...${rst} ${yel}на $DATE${rst} ${pur}...${rst} ${txtbld}$ya_eur${rst} р.  	│"
-  echo "└───────────────────────────────────────────────┘"
-  echo
-
-elif [ "$1" == "-p" ] || [ "$1" == "--pogoda" ] && [ ! -z "$2" ];then
-  depend_1
-  depend_2
-
-    if [ "$2" == "msk" ]; then
-      CITY=moscow
-      CODE=213
-      ya_city=Москва
-    elif [ "$2" == "spb" ]; then
-      CITY=saint-petersburg
-      CODE=2
-      ya_city=Петербург
+check_dep() {
+for deps in $DEP_1 $DEP_2
+do
+    if type $deps &>/dev/null
+    then
+        echo -e "   OK: $deps\t found"
+    else
+        dep_app=$deps
+        echo -e "Error: $deps\t not found"
     fi
-  b="lynx -dump https://pogoda.yandex.ru/$CITY/"
-  c="curl --silent https://yandex.ru/pogoda/$CODE"
+done
+}
+
+depends() {
+  check_dep &>/dev/null
+  if [ "$dep_app" != "" ]; then
+    echo "*** Внимание! Для полноценной работы приложения \"$NAME\""
+    echo "    Вам потребуется установить зависимость \"sudo apt-get install $dep_app\""
+    exit 1
+  fi
+}
+
+check_data() {
+  c="curl -s $SOURCE/$WEATHER/$CODE"
+  city_name=`exec $c | awk -F"title_level_1" '{print $2}' | cut -d ">" -f2 | cut -d "&" -f1 | sed 's/Погода в //g' | cut -d "<" -f1`
+  city_code=`exec $c | awk -F"city=" '{print $2}' | cut -d "&" -f1`
+}
+
+ident_code() {
+  check_data
+  if [ "$city_name" == "$ERROR_INT" ]; then
+    echo "$ERROR_EXT"
+    exit 1
+  else
+    echo "$city_code"
+  fi
+}
+
+ident_city() {
+  check_data
+  if [ "$city_name" == "$ERROR_INT" ]; then
+    echo "$ERROR_EXT"
+    exit 1
+  else
+    echo "Код отображает погоду в $city_name"
+  fi
+}
+
+ident_code_full() {
+  check_data
+  if [ "$city_name" == "$ERROR_INT" ]; then
+    echo "$ERROR_EXT"
+    exit 1
+  else
+    echo "Код <$city_code> по данным Яндекс.Погода пренадлежит <$city_name>."
+  fi
+}
+
+ident_city_full() {
+  check_data
+  if [ "$city_name" == "$ERROR_INT" ]; then
+    echo "$ERROR_EXT"
+    exit 1
+  else
+    echo "<$city_name> по данным Яндекс.Погода пренадлежит код <$city_code>."
+  fi
+}
+
+ident_weath() {
+  #check_data
+  if [ "$city_name" == "$ERROR_INT" ]; then
+    echo "$ERROR_EXT"
+    exit 1
+  else
+    weather
+  fi
+}
+
+weather() {
+  c="curl -s $SOURCE/$WEATHER/$CODE"
   echo -ne "$pbar0\r"
-  ya_temp=$(exec $c | awk -F"type_now" '/°C/ { print $3 }' | cut -d ">" -f2 | cut -d "<" -f1)
-  #ya_temp=$(exec $b | awk '/°C/ {print $1}')
+  ya_city=`exec $c | awk -F"title_level_1" '{print $2}' | cut -d ">" -f2 | cut -d "&" -f1 | sed 's/Погода в //g' | cut -d "<" -f1`
+  echo -ne "$pbar10\r"
+  ya_temp=`exec $c | awk -F"type_now" '/°C/ {print $3}' | cut -d ">" -f2 | cut -d "<" -f1`
   echo -ne "$pbar20\r"
-  ya_rise=$(exec $c | awk -F"info-label" '{ print $2 }' | cut -d ">" -f3 | cut -d "<" -f1)
+  ya_rise=`exec $c | awk -F"info-label" '{print $2}' | cut -d ">" -f3 | cut -d "<" -f1`
   echo -ne "$pbar35\r"
-  ya_sunset=$(exec $c | awk -F"type_sunset\">" '{ print $2 }' | cut -d ">" -f2 | cut -d "<" -f1)
+  ya_sunset=`exec $c | awk -F"info-label" '{print $4}' | cut -d ">" -f3 | cut -d "<" -f1`
   echo -ne "$pbar50\r"
-  #ya_wind=$(exec $c | awk -F"info-label" '{ print $5 }' | cut -d ">" -f3 | cut -d "<" -f1)
-  ya_wind=$(exec $b | awk '/Ветер:/ {print $2 " " $3 " " $4}')
+  ya_wind_s=`exec $c | awk -F"info-label" '{print $5}' | cut -d ">" -f4 | cut -d "<" -f1`
   echo -ne "$pbar65\r"
-  ya_prs=$(exec $b | awk '/Давление:/ {print $2 " " $3 " " $4 " " $5}')
+  ya_wind_d=`exec $c | awk -F"info-label" '{print $5}' | cut -d ">" -f6 | cut -d "<" -f1`
+  echo -ne "$pbar70\r"
+  ya_prs=`exec $c | awk -F"info-label" '{print $7}' | cut -d ">" -f3 | cut -d "<" -f1`
   echo -ne "$pbar80\r"
-  ya_hum=$(exec $c | awk -F"info-label" '{ print $6 }' | cut -d ">" -f3 | cut -d "<" -f1)
-  #ya_hum=$(exec $b | awk '/Влажность:/ {print $2}')
+  ya_hum=`exec $c | awk -F"info-label" '{print $6}' | cut -d ">" -f3 | cut -d "<" -f1`
   echo -ne "$pbar100\r"
-    if [ "$ya_wind" == "Штиль  " ]; then
+
+    if [ "$ya_wind_s" == "Штиль  " ]; then
       tab="	"
     else
       tab=""
     fi
+
   sleep 0.3
   echo -e "\n"
-  echo "┌─────────────────── ${bldgyn}Погода${rst} ────────────────────┐"
-  echo "│          ${bldgrn}Город${rst} ${pur}..............${rst} ${bldgrn}$ya_city${rst}  	│"
-  echo "│    ${bldyel}Температура${rst} ${pur}..............${rst} ${txtbld}$ya_temp${rst}    	│"
-  echo "│      ${bldyel}Влажность${rst} ${pur}..............${rst} ${txtbld}$ya_hum${rst}		│"
-  echo "│       ${bldyel}Давление${rst} ${pur}..............${rst} ${txtbld}$ya_prs${rst} 	│"
-  echo "│          ${bldyel}Ветер${rst} ${pur}..............${rst} ${txtbld}$ya_wind${tab}${rst}	│"
-  echo "│         ${bldyel}Восход${rst} ${pur}..............${rst} ${txtbld}$ya_rise${rst}       	│"
-  echo "│          ${bldyel}Закат${rst} ${pur}..............${rst} ${txtbld}$ya_sunset${rst}     	│"
+  echo "┌───────────────[ ${bldgyn}$NAME v$VERSION${rst} ]───────────────┐"
+  echo "│         ${bldgrn}Погода в${rst} ${pur}...........${rst} ${bldgrn}$ya_city${rst}${tab_c}	│"
+  echo "│      ${bldyel}Температура${rst} ${pur}...........${rst} ${txtbld}$ya_temp${rst}     	│"
+  echo "│        ${bldyel}Влажность${rst} ${pur}...........${rst} ${txtbld}$ya_hum${rst}		│"
+  echo "│         ${bldyel}Давление${rst} ${pur}...........${rst} ${txtbld}$ya_prs${rst} 	│"
+  echo "│            ${bldyel}Ветер${rst} ${pur}...........${rst} ${txtbld}$ya_wind_s $ya_wind_d${tab}${rst}	│"
+  echo "│           ${bldyel}Восход${rst} ${pur}...........${rst} ${txtbld}$ya_rise${rst}       	│"
+  echo "│            ${bldyel}Закат${rst} ${pur}...........${rst} ${txtbld}$ya_sunset${rst}     	│"
   echo "└───────────────────────────────────────────────┘"
+  #echo
+  footer
+}
+
+stock() {
+  a="curl -s $SOURCE"
+  echo -ne "$pbar0\r"
+  ya_usd=`exec $a | awk -F"stocks__link" '/USD/ {print $2}' | cut -d "<" -f14 | cut -d ">" -f2`
+  echo -ne "$pbar50\r"
+  ya_eur=`exec $a | awk -F"stocks__link" '/EUR/ {print $3}' | cut -d "<" -f14 | cut -d ">" -f2`
+  echo -ne "$pbar100\r"
+  sleep 0.3
+  echo -e "\n"
+  echo "┌───────────────[ ${bldgyn}$NAME v$VERSION${rst} ]───────────────┐"
+  echo "│        ${bldyel}Доллар${rst} ${pur}...${rst} ${yel}на $DATE${rst} ${pur}...${rst} ${txtbld}$ya_usd${rst} р.   │"
+  echo "│          ${bldyel}Евро${rst} ${pur}...${rst} ${yel}на $DATE${rst} ${pur}...${rst} ${txtbld}$ya_eur${rst} р.   │"
+  echo "│                  ${bldgyn}Курсы валют${rst}                  │"
+  echo "└───────────────────────────────────────────────┘"
+  #echo
+  footer
+}
+###
+
+### Команды
+if [ "$1" == "-h"  ] || [ "$1" == "--help"  ] && [ -z "$2" ]; then
+  echo "$NAME $VERSION, программа получения курса валют и погодных данных c Яндекс."
+  echo "Использование: $APPNAME [КЛЮЧ]... [ГОРОД]..."
   echo
+  echo "Команды на выбор:"
+  echo "  -s,  --stock                 Отобразить курсы валют."
+  echo "  -p,  --pogoda [name|codec]   Отобразить полные метео данные используя код или имя города на англ."
+  echo "  -w,  --weather [name|code]   Отобразить полные метео данные используя код или имя города на англ."
+  echo "  -c,  --city [name city]      Отобразить код города (Используйте: имя города на англ.)."
+  echo "  -c,  --code [code city]      Отобразить имя города (Используйте: код)."
+  echo "  -i,  --info [name|code]      Отобразить полную информацию о название или коде города."
+  echo "                               (Используйте: код или имя города на англ.)"
+  echo "  -h,  --help                  Показать эту справку и выйти."
+  echo "  -v,  --version               Показать информацию о версии и выйти."
+  echo
+  echo "Примеры:"
+  echo "     $APPNAME -c 213      Вывод информации какому городу пренадлежит данный код."
+  echo "     $APPNAME -p moscow   Вывод метео данных по городу Москва, также возможно ввести код (например: 213)."
+  echo
+  echo "Примечание:"
+  echo "     Коды используются в соответствии с базой данных - Яндекс.Погода ($SOURCE/$WEATHER)." 
+  echo
+  echo "Об ошибках в \"$NAME\" сообщайте по адресу <$EMAIL>"
+  exit 1
+
+elif [ "$1" == "-v"  ] || [ "$1" == "--version"  ] && [ -z "$2" ]; then
+  echo "Версия: $VERSION, дата релиза: $RELEASE"
+  exit 1
+
+elif [ "$1" == "-s"  ] || [ "$1" == "--stock"  ] && [ -z "$2" ]; then
+  depends
+  stock
+
+elif [[ "$1" == "-p" || "$1" == "-w" || "$1" == "--pogoda" || "$1" == "--weather" && -n "$2" ]]; then
+  depends
+  CODE=$2
+  check_data
+  length=`echo "$city_name" | awk '{a=(length($1)/2); print a}'`
+    if [ "$length" -lt "6" ]; then
+      tab_c="     "
+    elif [ "$length" -lt "9" ]; then
+      tab_c="   "
+    else
+      tab_c=""
+    fi
+  ident_weath
+
+elif [[ "$1" == "-c" && -n "$2" ]]; then
+  depends
+  CODE=$2
+  check_data
+  if [ "$2" == "$city_code" ]; then
+    ident_city
+  else
+    ident_code
+  fi
+
+elif [[ "$1" == "--code" && -n "$2" ]]; then
+  depends
+  CODE=$2
+  ident_city
+
+elif [[ "$1" == "--city" && -n "$2" ]]; then
+  depends
+  CODE=$2
+  ident_code
+
+elif [[ "$1" == "-i" || "$1" == "--info" && -n "$2" ]]; then
+  depends
+  CODE=$2
+  check_data
+  if [ "$2" == "$city_code" ]; then
+    ident_code_full
+  else
+    ident_city_full
+  fi
 
 else
-echo "Используйте помощь: --help"
+echo "$HELP"
 fi
+###
 
 exit 0
