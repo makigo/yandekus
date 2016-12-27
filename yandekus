@@ -235,7 +235,7 @@ elif [[ "$1" == "-p" || "$1" == "-w" || "$1" == "--pogoda" || "$1" == "--weather
   depends
   CODE=$2
   check_data
-  length=`echo "$city_name" | awk '{a=(length($1)/2); print a}'`
+  length=`echo "$city_name" | awk '{print length($1)}'`
     if [ "$length" -lt "6" ]; then
       tab_c="     "
     elif [ "$length" -lt "9" ]; then
