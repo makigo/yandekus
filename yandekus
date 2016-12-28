@@ -133,7 +133,10 @@ ident_weath() {
 }
 
 weather() {
-  c="curl -s $SOURCE/$WEATHER/$CODE"
+  echo -ne "Пожадуйста подождите...\r"
+  #c="curl -s $SOURCE/$WEATHER/$CODE"
+  curl -s -o /tmp/$CODE.txt $SOURCE/$WEATHER/$CODE
+  c="cat /tmp/$CODE.txt"
   echo -ne "$pbar0\r"
   ya_city=`exec $c | awk -F"title_level_1" '{print $2}' | cut -d ">" -f2 | cut -d "&" -f1 | sed 's/Погода в //g' | cut -d "<" -f1`
   echo -ne "$pbar10\r"
@@ -151,6 +154,8 @@ weather() {
   echo -ne "$pbar80\r"
   ya_hum=`exec $c | awk -F"info-label" '{print $6}' | cut -d ">" -f3 | cut -d "<" -f1`
   echo -ne "$pbar100\r"
+  echo -ne "\r"
+  rm -f /tmp/$CODE.txt
 
     if [ "$ya_wind_s" == "Штиль  " ]; then
       tab="	"
@@ -158,8 +163,6 @@ weather() {
       tab=""
     fi
 
-  sleep 0.3
-  echo -e "\n"
   echo "┌───────────────[ ${bldgyn}$NAME v$VERSION${rst} ]───────────────┐"
   echo "│         ${bldgrn}Погода в${rst} ${pur}...........${rst} ${bldgrn}$ya_city${rst}${tab_c}	│"
   echo "│      ${bldyel}Температура${rst} ${pur}...........${rst} ${txtbld}$ya_temp${rst}     	│"
@@ -169,7 +172,6 @@ weather() {
   echo "│           ${bldyel}Восход${rst} ${pur}...........${rst} ${txtbld}$ya_rise${rst}       	│"
   echo "│            ${bldyel}Закат${rst} ${pur}...........${rst} ${txtbld}$ya_sunset${rst}     	│"
   echo "└───────────────────────────────────────────────┘"
-  #echo
   footer
 }
 
@@ -231,7 +233,9 @@ elif [[ "$1" == "-p" || "$1" == "-w" || "$1" == "--pogoda" || "$1" == "--weather
   CODE=$2
   check_data
   length=${#city_name}
-    if [ "$length" -le "6" ]; then
+    if [ "$length" -le "3" ]; then
+      tab_c="       "
+    elif [ "$length" -le "6" ]; then
       tab_c="     "
     elif [ "$length" -lt "9" ]; then
       tab_c="   "
