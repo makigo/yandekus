@@ -9,8 +9,8 @@ set -e
 
 NAME=Yandekus
 APPNAME=yandekus
-VERSION=3.0
-RELEASE=27.12.2016
+VERSION=3.1
+RELEASE=28.12.2016
 EMAIL=work.makhonin@gmail.com
 DATE=`date +%d/%m`
 SOURCE="https://yandex.ru"
@@ -133,26 +133,26 @@ ident_weath() {
 }
 
 weather() {
-  echo -ne "Пожадуйста подождите...\r"
+  echo -ne "Пожалуйста подождите...\r"
   #c="curl -s $SOURCE/$WEATHER/$CODE"
   curl -s -o /tmp/$CODE.txt $SOURCE/$WEATHER/$CODE
-  c="cat /tmp/$CODE.txt"
+  a="cat /tmp/$CODE.txt"
   echo -ne "$pbar0\r"
-  ya_city=`exec $c | awk -F"title_level_1" '{print $2}' | cut -d ">" -f2 | cut -d "&" -f1 | sed 's/Погода в //g' | cut -d "<" -f1`
+  ya_city=`exec $a | awk -F"title_level_1" '{print $2}' | cut -d ">" -f2 | cut -d "&" -f1 | sed 's/Погода в //g' | cut -d "<" -f1`
   echo -ne "$pbar10\r"
-  ya_temp=`exec $c | awk -F"type_now" '/°C/ {print $3}' | cut -d ">" -f2 | cut -d "<" -f1`
+  ya_temp=`exec $a | awk -F"type_now" '/°C/ {print $3}' | cut -d ">" -f2 | cut -d "<" -f1`
   echo -ne "$pbar20\r"
-  ya_rise=`exec $c | awk -F"info-label" '{print $2}' | cut -d ">" -f3 | cut -d "<" -f1`
+  ya_rise=`exec $a | awk -F"info-label" '{print $2}' | cut -d ">" -f3 | cut -d "<" -f1`
   echo -ne "$pbar35\r"
-  ya_sunset=`exec $c | awk -F"info-label" '{print $4}' | cut -d ">" -f3 | cut -d "<" -f1`
+  ya_sunset=`exec $a | awk -F"info-label" '{print $4}' | cut -d ">" -f3 | cut -d "<" -f1`
   echo -ne "$pbar50\r"
-  ya_wind_s=`exec $c | awk -F"info-label" '{print $5}' | cut -d ">" -f4 | cut -d "<" -f1`
+  ya_wind_s=`exec $a | awk -F"info-label" '{print $5}' | cut -d ">" -f4 | cut -d "<" -f1`
   echo -ne "$pbar65\r"
-  ya_wind_d=`exec $c | awk -F"info-label" '{print $5}' | cut -d ">" -f6 | cut -d "<" -f1`
+  ya_wind_d=`exec $a | awk -F"info-label" '{print $5}' | cut -d ">" -f6 | cut -d "<" -f1`
   echo -ne "$pbar70\r"
-  ya_prs=`exec $c | awk -F"info-label" '{print $7}' | cut -d ">" -f3 | cut -d "<" -f1`
+  ya_prs=`exec $a | awk -F"info-label" '{print $7}' | cut -d ">" -f3 | cut -d "<" -f1`
   echo -ne "$pbar80\r"
-  ya_hum=`exec $c | awk -F"info-label" '{print $6}' | cut -d ">" -f3 | cut -d "<" -f1`
+  ya_hum=`exec $a | awk -F"info-label" '{print $6}' | cut -d ">" -f3 | cut -d "<" -f1`
   echo -ne "$pbar100\r"
   echo -ne "\r"
   rm -f /tmp/$CODE.txt
@@ -176,20 +176,21 @@ weather() {
 }
 
 stock() {
-  a="curl -s $SOURCE"
+  echo -ne "Пожалуйста подождите...\r"
+  #a="curl -s $SOURCE"
+  curl -s -o /tmp/STOCK.txt $SOURCE
+  a="cat /tmp/STOCK.txt"
   echo -ne "$pbar0\r"
   ya_usd=`exec $a | awk -F"stocks__link" '/USD/ {print $2}' | cut -d "<" -f14 | cut -d ">" -f2`
   echo -ne "$pbar50\r"
   ya_eur=`exec $a | awk -F"stocks__link" '/EUR/ {print $3}' | cut -d "<" -f14 | cut -d ">" -f2`
   echo -ne "$pbar100\r"
-  sleep 0.3
-  echo -e "\n"
+  echo -ne "\r"
   echo "┌───────────────[ ${bldgyn}$NAME v$VERSION${rst} ]───────────────┐"
   echo "│        ${bldyel}Доллар${rst} ${pur}...${rst} ${yel}на $DATE${rst} ${pur}...${rst} ${txtbld}$ya_usd${rst} р.       │"
   echo "│          ${bldyel}Евро${rst} ${pur}...${rst} ${yel}на $DATE${rst} ${pur}...${rst} ${txtbld}$ya_eur${rst} р.       │"
   echo "│                  ${bldgyn}Курсы валют${rst}                  │"
   echo "└───────────────────────────────────────────────┘"
-  #echo
   footer
 }
 ###
