@@ -88,7 +88,6 @@ check_data() {
 }
 
 ident_code() {
-  check_data
   if [ "$city_name" == "$ERROR_INT" ]; then
     echo "$ERROR_EXT"
     exit 1
@@ -98,7 +97,6 @@ ident_code() {
 }
 
 ident_city() {
-  check_data
   if [ "$city_name" == "$ERROR_INT" ]; then
     echo "$ERROR_EXT"
     exit 1
@@ -108,27 +106,24 @@ ident_city() {
 }
 
 ident_code_full() {
-  check_data
   if [ "$city_name" == "$ERROR_INT" ]; then
     echo "$ERROR_EXT"
     exit 1
   else
-    echo "Код <$city_code> по данным Яндекс.Погода пренадлежит <$city_name>."
+    echo "Код <$city_code> по данным \"Яндекс\" отображает погоду в <$city_name>."
   fi
 }
 
 ident_city_full() {
-  check_data
   if [ "$city_name" == "$ERROR_INT" ]; then
     echo "$ERROR_EXT"
     exit 1
   else
-    echo "<$city_name> по данным Яндекс.Погода пренадлежит код <$city_code>."
+    echo "Погоду в <$city_name> по данным \"Яндекс\" отображает код <$city_code>."
   fi
 }
 
 ident_weath() {
-  #check_data
   if [ "$city_name" == "$ERROR_INT" ]; then
     echo "$ERROR_EXT"
     exit 1
@@ -204,7 +199,7 @@ if [ "$1" == "-h"  ] || [ "$1" == "--help"  ] && [ -z "$2" ]; then
   echo
   echo "Команды на выбор:"
   echo "  -s,  --stock                 Отобразить курсы валют."
-  echo "  -p,  --pogoda [name|codec]   Отобразить полные метео данные используя код или имя города на англ."
+  echo "  -p,  --pogoda [name|code]   Отобразить полные метео данные используя код или имя города на англ."
   echo "  -w,  --weather [name|code]   Отобразить полные метео данные используя код или имя города на англ."
   echo "  -c,  --city [name city]      Отобразить код города (Используйте: имя города на англ.)."
   echo "  -c,  --code [code city]      Отобразить имя города (Используйте: код)."
@@ -235,8 +230,8 @@ elif [[ "$1" == "-p" || "$1" == "-w" || "$1" == "--pogoda" || "$1" == "--weather
   depends
   CODE=$2
   check_data
-  length=`echo "$city_name" | awk '{print length($1)}'`
-    if [ "$length" -lt "6" ]; then
+  length=${#city_name}
+    if [ "$length" -le "6" ]; then
       tab_c="     "
     elif [ "$length" -lt "9" ]; then
       tab_c="   "
@@ -258,11 +253,13 @@ elif [[ "$1" == "-c" && -n "$2" ]]; then
 elif [[ "$1" == "--code" && -n "$2" ]]; then
   depends
   CODE=$2
+  check_data
   ident_city
 
 elif [[ "$1" == "--city" && -n "$2" ]]; then
   depends
   CODE=$2
+  check_data
   ident_code
 
 elif [[ "$1" == "-i" || "$1" == "--info" && -n "$2" ]]; then
