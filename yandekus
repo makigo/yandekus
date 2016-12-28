@@ -178,14 +178,16 @@ weather() {
 stock() {
   echo -ne "Пожалуйста подождите...\r"
   #a="curl -s $SOURCE"
-  curl -s -o /tmp/STOCK.txt $SOURCE
-  a="cat /tmp/STOCK.txt"
+  curl -s -o /tmp/$STOCK.txt $SOURCE
+  a="cat /tmp/$STOCK.txt"
   echo -ne "$pbar0\r"
   ya_usd=`exec $a | awk -F"stocks__link" '/USD/ {print $2}' | cut -d "<" -f14 | cut -d ">" -f2`
   echo -ne "$pbar50\r"
   ya_eur=`exec $a | awk -F"stocks__link" '/EUR/ {print $3}' | cut -d "<" -f14 | cut -d ">" -f2`
   echo -ne "$pbar100\r"
   echo -ne "\r"
+  rm -f /tmp/$STOCK.txt
+
   echo "┌───────────────[ ${bldgyn}$NAME v$VERSION${rst} ]───────────────┐"
   echo "│        ${bldyel}Доллар${rst} ${pur}...${rst} ${yel}на $DATE${rst} ${pur}...${rst} ${txtbld}$ya_usd${rst} р.       │"
   echo "│          ${bldyel}Евро${rst} ${pur}...${rst} ${yel}на $DATE${rst} ${pur}...${rst} ${txtbld}$ya_eur${rst} р.       │"
