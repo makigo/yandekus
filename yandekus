@@ -9,12 +9,26 @@ set -e
 
 NAME=Yandekus
 APPNAME=yandekus
+<<<<<<< Updated upstream
 VERSION=3.1
 RELEASE=28.12.2016
 EMAIL=work.makhonin@gmail.com
 DATE=`date +%d/%m`
 SOURCE="https://www.yandex.ru"
 WEATHER="pogoda"
+=======
+VERSION=3.2
+RELEASE=28.12.2016
+AUTHOR="Igor Makhonin"
+EMAIL=work.makhonin@gmail.com
+DATE=`date +%d/%m`
+ADDRESS="yandex.ru"
+XML="http://export.$ADDRESS/bar/reginfo.xml?region="
+SOURCE="https://www.$ADDRESS"
+WEATHER="pogoda"
+MAPS="maps"
+VAR_MAP="probki"
+>>>>>>> Stashed changes
 ERROR_EXT=" * Некорректные данные, исправьте ошибку."
 ERROR_INT="Такой страницы не существует"
 HELP="Используйте помощь: -h или --help"
@@ -48,15 +62,25 @@ rst=$(tput sgr0)                # Reset
  pbar70="$COLLECT  70% [${grn}====================>${blu}........${rst}]"
  pbar75="$COLLECT  75% [${grn}======================>${blu}......${rst}]"
  pbar80="$COLLECT  80% [${grn}========================>${blu}....${rst}]"
- pbar90="$COLLECT  90% [${grn}==========================>${blu}..${rst}]OQ"
+ pbar90="$COLLECT  90% [${grn}==========================>${blu}..${rst}]"
 pbar100="$COLLECT ${grn}100%${rst} [${grn}=============================${rst}]"
 
 ### ─ ┬ ├ ≥ ┤ ▒ ° ± ┘ ┐ ┌ ≤ │ ┴ ┼ └ ###
 
+<<<<<<< Updated upstream
 
 ### Функции
 footer() {
   echo -e "Загружено за $SECONDS сек.\t   Источник ${SOURCE:8}"
+=======
+### Функции
+footer_a() {
+  echo -e "Загружено за $SECONDS сек.\t   Источник ${SOURCE:8}"
+}
+
+footer_b() {
+  echo -e "Загружено за $SECONDS сек.\t\t\t Источник ${SOURCE:8}"
+>>>>>>> Stashed changes
 }
 
 check_dep() {
@@ -82,11 +106,25 @@ depends() {
 }
 
 check_data() {
+<<<<<<< Updated upstream
   c="curl -s $SOURCE/$WEATHER/$CODE"
   city_name=`exec $c | awk -F"title_level_1" '{print $2}' | cut -d ">" -f2 | cut -d "&" -f1 | sed 's/Погода в //g' | cut -d "<" -f1`
   city_code=`exec $c | awk -F"city=" '{print $2}' | cut -d "&" -f1`
 }
 
+=======
+  a="curl -s $SOURCE/$WEATHER/$CODE"
+  city_name=`exec $a | awk -F"title_level_1" '{print $2}' | cut -d ">" -f2 | cut -d "&" -f1 | sed 's/Погода в //g' | cut -d "<" -f1`
+  city_code=`exec $a | awk -F"city=" '{print $2}' | cut -d "&" -f1`
+}
+
+check_xml() {
+  a="curl -s $XML$CODE"
+  t_city_rus=`exec $a | awk -F"<*>" '/title/ {print $2}' | cut -d "<" -f1`
+  t_city_lat=`exec $a | awk -F"<*>" '/url slug/ {print $1}' | cut -d "\"" -f2`
+}
+
+>>>>>>> Stashed changes
 ident_code() {
   if [ "$city_name" == "$ERROR_INT" ]; then
     echo "$ERROR_EXT"
@@ -172,7 +210,11 @@ weather() {
   echo "│           ${bldyel}Восход${rst} ${pur}...........${rst} ${txtbld}$ya_rise${rst}       	│"
   echo "│            ${bldyel}Закат${rst} ${pur}...........${rst} ${txtbld}$ya_sunset${rst}     	│"
   echo "└───────────────────────────────────────────────┘"
+<<<<<<< Updated upstream
   footer
+=======
+  footer_a
+>>>>>>> Stashed changes
 }
 
 stock() {
@@ -193,7 +235,63 @@ stock() {
   echo "│          ${bldyel}Евро${rst} ${pur}...${rst} ${yel}на $DATE${rst} ${pur}...${rst} ${txtbld}$ya_eur${rst} р.       │"
   echo "│                  ${bldgyn}Курсы валют${rst}                  │"
   echo "└───────────────────────────────────────────────┘"
+<<<<<<< Updated upstream
   footer
+=======
+  footer_a
+}
+
+traffic() {
+  echo -ne "Пожалуйста подождите...\r"
+  curl -s -o /tmp/$TRAFFIC.txt $XML$CODE
+  a="cat /tmp/$TRAFFIC.txt"
+  echo -ne "$pbar0\r"
+  ya_traff=`exec $a | awk -F"<*>" '/level/ {print $2}' | cut -d "<" -f1`
+  echo -ne "$pbar10\r"
+  ya_temp=`exec $a | awk -F"<*>" '/temperature / {print $2}' | cut -d "<" -f1 | sort -u | tr -d '\r\n'`
+  echo -ne "$pbar20\r"
+  ya_city=`exec $a | awk -F"<*>" '/title/ {print $2}' | cut -d "<" -f1 | sort -u`
+  echo -ne "$pbar30\r"
+  ya_rise=`exec $a | awk -F"<*>" '/sun_rise/ {print $2}' | cut -d "<" -f1`
+  echo -ne "$pbar40\r"
+  ya_sunset=`exec $a | awk -F"<*>" '/sunset/ {print $2}' | cut -d "<" -f1`
+  echo -ne "$pbar50\r"
+  ya_country=`exec $a | awk -F"<*>" '/country/ {print $2}' | cut -d "<" -f1`
+  echo -ne "$pbar60\r"
+  ya_prs=`exec $a | awk -F"<*>" '/pressure/ {print $2}' | cut -d "<" -f1`
+  echo -ne "$pbar65\r"
+  ya_wind_s=`exec $a | awk -F"<*>" '/wind_speed/ {print $2}' | cut -d "<" -f1`
+  echo -ne "$pbar70\r"
+  ya_wind_d=`exec $a | awk -F"<*>" '/wind_direction/ {print $2}' | cut -d "<" -f1`
+  echo -ne "$pbar75\r"
+  ya_hum=`exec $a | awk -F"<*>" '/dampness/ {print $2}' | cut -d "<" -f1`
+  echo -ne "$pbar80\r"
+  ya_type=`exec $a | awk -F"<*>" '/weather_type/ {print $2}' | cut -d "<" -f1`
+  echo -ne "$pbar90\r"
+  ya_city_lat=`exec $a | awk -F"<*>" '/url slug/ {print $1}' | cut -d "\"" -f2`
+  echo -ne "$pbar100\r"
+  echo -ne "\r"
+  rm -f /tmp/$TRAFFIC.txt
+  if [ "$ya_traff" == "" ]; then
+    ya_traff="-"
+  fi
+
+  dots=".............."
+
+  printf "┌──────────────────────[ %s %s ]──────────────────────┐\n"          "${bldgyn}$NAME"              "v$VERSION${rst}"
+  printf "│    %40s %s %s \t\t      │ \n"                                     "${bldyel}Страна${rst}"       "${pur}${dots}${rst}" "${txtbld}$ya_country${rst}"
+  printf "│    %39s %s %s \t\t      │ \n"                                     "${bldyel}Город${rst}"        "${pur}${dots}${rst}" "${txtbld}$ya_city${rst}${tab_c}"
+  printf "│    %40s %s %s \t      │ \n"                                       "${bldyel}Пробки${rst}"       "${pur}${dots}${rst}" "${txtbld}$ya_traff${rst} балл."
+  printf "│    %45s %s %s \t\t      │ \n"                                     "${bldyel}Температура${rst}"  "${pur}${dots}${rst}" "${txtbld}$ya_temp${rst}°C"
+  printf "│    %43s %s %s \t\t      │ \n"                                     "${bldyel}Влажность${rst}"    "${pur}${dots}${rst}" "${txtbld}$ya_hum${rst}%"
+  printf "│    %42s %s %s \t      │ \n"                                       "${bldyel}Давление${rst}"     "${pur}${dots}${rst}" "${txtbld}$ya_prs мм рт.ст.${rst}"
+  printf "│    %39s %s %s \t      │ \n"                                       "${bldyel}Ветер${rst}"        "${pur}${dots}${rst}" "${txtbld}$ya_wind_s м/с $ya_wind_d${tab}${rst}"
+  printf "│    %40s %s %s \t\t      │ \n"                                     "${bldyel}Восход${rst}"       "${pur}${dots}${rst}" "${txtbld}$ya_rise${rst}"
+  printf "│    %39s %s %s \t\t      │ \n"                                     "${bldyel}Закат${rst}"        "${pur}${dots}${rst}" "${txtbld}$ya_sunset${rst}"
+  printf "│    %43s %s %s \t\t      │ \n"                                     "${bldyel}Параметры${rst}"    "${pur}${dots}${rst}" "${txtbld}$ya_type${rst}"
+  printf "└─────────────────────────────────────────────────────────────┘\n"
+  footer_b
+>>>>>>> Stashed changes
 }
 ###
 
@@ -201,6 +299,7 @@ stock() {
 if [ "$1" == "-h"  ] || [ "$1" == "--help"  ] && [ -z "$2" ]; then
   echo "$NAME $VERSION, программа получения курса валют и погодных данных c Яндекс."
   echo "Использование: $APPNAME [КЛЮЧ]... [ГОРОД]..."
+<<<<<<< Updated upstream
   echo
   echo "Команды на выбор:"
   echo "  -s,  --stock                 Отобразить курсы валют."
@@ -217,6 +316,24 @@ if [ "$1" == "-h"  ] || [ "$1" == "--help"  ] && [ -z "$2" ]; then
   echo "     $APPNAME -c 213      Вывод информации какому городу пренадлежит данный код."
   echo "     $APPNAME -p moscow   Вывод метео данных по городу Москва, также возможно ввести код (например: 213)."
   echo
+=======
+  echo
+  echo "Команды на выбор:"
+  echo "  -s,  --stock                 Отобразить курсы валют."
+  echo "  -p,  --pogoda [name|code]   Отобразить полные метео данные используя код или имя города на англ."
+  echo "  -w,  --weather [name|code]   Отобразить полные метео данные используя код или имя города на англ."
+  echo "  -c,  --city [name city]      Отобразить код города (Используйте: имя города на англ.)."
+  echo "  -c,  --code [code city]      Отобразить имя города (Используйте: код)."
+  echo "  -i,  --info [name|code]      Отобразить полную информацию о название или коде города."
+  echo "                               (Используйте: код или имя города на англ.)"
+  echo "  -h,  --help                  Показать эту справку и выйти."
+  echo "  -v,  --version               Показать информацию о версии и выйти."
+  echo
+  echo "Примеры:"
+  echo "     $APPNAME -c 213      Вывод информации какому городу пренадлежит данный код."
+  echo "     $APPNAME -p moscow   Вывод метео данных по городу Москва, также возможно ввести код (например: 213)."
+  echo
+>>>>>>> Stashed changes
   echo "Примечание:"
   echo "     Коды используются в соответствии с базой данных - Яндекс.Погода ($SOURCE/$WEATHER)." 
   echo
@@ -278,6 +395,16 @@ elif [[ "$1" == "-i" || "$1" == "--info" && -n "$2" ]]; then
   else
     ident_city_full
   fi
+<<<<<<< Updated upstream
+=======
+
+elif [[ "$1" == "-t" || "$1" == "--traffic" && -n "$2" ]]; then
+  depends
+  CODE=$2
+  check_data
+  CODE=$city_code
+  traffic
+>>>>>>> Stashed changes
 
 else
 echo "$HELP"
