@@ -56,7 +56,7 @@ pbar100="$COLLECT ${grn}100%${rst} [${grn}=============================${rst}]"
 
 ### Функции
 footer() {
-  echo -e "Загружено за $SECONDS сек.\t   Источник ${SOURCE:8}"
+  echo "Данные загружены за $SECONDS сек. Источник ${SOURCE:8}"
 }
 
 check_dep() {
