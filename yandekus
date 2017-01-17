@@ -9,8 +9,17 @@ set -e
 
 NAME=Yandekus
 APPNAME=yandekus
+<<<<<<< Updated upstream
+VERSION=3.1
+RELEASE=28.12.2016
+EMAIL=work.makhonin@gmail.com
+DATE=`date +%d/%m`
+SOURCE="https://www.yandex.ru"
+WEATHER="pogoda"
+=======
 VERSION=3.2
 RELEASE=28.12.2016
+AUTHOR="Igor Makhonin"
 EMAIL=work.makhonin@gmail.com
 DATE=`date +%d/%m`
 ADDRESS="yandex.ru"
@@ -19,6 +28,7 @@ SOURCE="https://www.$ADDRESS"
 WEATHER="pogoda"
 MAPS="maps"
 VAR_MAP="probki"
+>>>>>>> Stashed changes
 ERROR_EXT=" * Некорректные данные, исправьте ошибку."
 ERROR_INT="Такой страницы не существует"
 HELP="Используйте помощь: -h или --help"
@@ -57,6 +67,12 @@ pbar100="$COLLECT ${grn}100%${rst} [${grn}=============================${rst}]"
 
 ### ─ ┬ ├ ≥ ┤ ▒ ° ± ┘ ┐ ┌ ≤ │ ┴ ┼ └ ###
 
+<<<<<<< Updated upstream
+
+### Функции
+footer() {
+  echo -e "Загружено за $SECONDS сек.\t   Источник ${SOURCE:8}"
+=======
 ### Функции
 footer_a() {
   echo -e "Загружено за $SECONDS сек.\t   Источник ${SOURCE:8}"
@@ -64,6 +80,7 @@ footer_a() {
 
 footer_b() {
   echo -e "Загружено за $SECONDS сек.\t\t\t Источник ${SOURCE:8}"
+>>>>>>> Stashed changes
 }
 
 check_dep() {
@@ -89,6 +106,13 @@ depends() {
 }
 
 check_data() {
+<<<<<<< Updated upstream
+  c="curl -s $SOURCE/$WEATHER/$CODE"
+  city_name=`exec $c | awk -F"title_level_1" '{print $2}' | cut -d ">" -f2 | cut -d "&" -f1 | sed 's/Погода в //g' | cut -d "<" -f1`
+  city_code=`exec $c | awk -F"city=" '{print $2}' | cut -d "&" -f1`
+}
+
+=======
   a="curl -s $SOURCE/$WEATHER/$CODE"
   city_name=`exec $a | awk -F"title_level_1" '{print $2}' | cut -d ">" -f2 | cut -d "&" -f1 | sed 's/Погода в //g' | cut -d "<" -f1`
   city_code=`exec $a | awk -F"city=" '{print $2}' | cut -d "&" -f1`
@@ -100,6 +124,7 @@ check_xml() {
   t_city_lat=`exec $a | awk -F"<*>" '/url slug/ {print $1}' | cut -d "\"" -f2`
 }
 
+>>>>>>> Stashed changes
 ident_code() {
   if [ "$city_name" == "$ERROR_INT" ]; then
     echo "$ERROR_EXT"
@@ -185,7 +210,11 @@ weather() {
   echo "│           ${bldyel}Восход${rst} ${pur}...........${rst} ${txtbld}$ya_rise${rst}       	│"
   echo "│            ${bldyel}Закат${rst} ${pur}...........${rst} ${txtbld}$ya_sunset${rst}     	│"
   echo "└───────────────────────────────────────────────┘"
+<<<<<<< Updated upstream
+  footer
+=======
   footer_a
+>>>>>>> Stashed changes
 }
 
 stock() {
@@ -206,6 +235,9 @@ stock() {
   echo "│          ${bldyel}Евро${rst} ${pur}...${rst} ${yel}на $DATE${rst} ${pur}...${rst} ${txtbld}$ya_eur${rst} р.       │"
   echo "│                  ${bldgyn}Курсы валют${rst}                  │"
   echo "└───────────────────────────────────────────────┘"
+<<<<<<< Updated upstream
+  footer
+=======
   footer_a
 }
 
@@ -259,6 +291,7 @@ traffic() {
   printf "│    %43s %s %s \t\t      │ \n"                                     "${bldyel}Параметры${rst}"    "${pur}${dots}${rst}" "${txtbld}$ya_type${rst}"
   printf "└─────────────────────────────────────────────────────────────┘\n"
   footer_b
+>>>>>>> Stashed changes
 }
 ###
 
@@ -266,6 +299,7 @@ traffic() {
 if [ "$1" == "-h"  ] || [ "$1" == "--help"  ] && [ -z "$2" ]; then
   echo "$NAME $VERSION, программа получения курса валют и погодных данных c Яндекс."
   echo "Использование: $APPNAME [КЛЮЧ]... [ГОРОД]..."
+<<<<<<< Updated upstream
   echo
   echo "Команды на выбор:"
   echo "  -s,  --stock                 Отобразить курсы валют."
@@ -282,6 +316,24 @@ if [ "$1" == "-h"  ] || [ "$1" == "--help"  ] && [ -z "$2" ]; then
   echo "     $APPNAME -c 213      Вывод информации какому городу пренадлежит данный код."
   echo "     $APPNAME -p moscow   Вывод метео данных по городу Москва, также возможно ввести код (например: 213)."
   echo
+=======
+  echo
+  echo "Команды на выбор:"
+  echo "  -s,  --stock                 Отобразить курсы валют."
+  echo "  -p,  --pogoda [name|code]   Отобразить полные метео данные используя код или имя города на англ."
+  echo "  -w,  --weather [name|code]   Отобразить полные метео данные используя код или имя города на англ."
+  echo "  -c,  --city [name city]      Отобразить код города (Используйте: имя города на англ.)."
+  echo "  -c,  --code [code city]      Отобразить имя города (Используйте: код)."
+  echo "  -i,  --info [name|code]      Отобразить полную информацию о название или коде города."
+  echo "                               (Используйте: код или имя города на англ.)"
+  echo "  -h,  --help                  Показать эту справку и выйти."
+  echo "  -v,  --version               Показать информацию о версии и выйти."
+  echo
+  echo "Примеры:"
+  echo "     $APPNAME -c 213      Вывод информации какому городу пренадлежит данный код."
+  echo "     $APPNAME -p moscow   Вывод метео данных по городу Москва, также возможно ввести код (например: 213)."
+  echo
+>>>>>>> Stashed changes
   echo "Примечание:"
   echo "     Коды используются в соответствии с базой данных - Яндекс.Погода ($SOURCE/$WEATHER)." 
   echo
@@ -343,6 +395,8 @@ elif [[ "$1" == "-i" || "$1" == "--info" && -n "$2" ]]; then
   else
     ident_city_full
   fi
+<<<<<<< Updated upstream
+=======
 
 elif [[ "$1" == "-t" || "$1" == "--traffic" && -n "$2" ]]; then
   depends
@@ -350,6 +404,7 @@ elif [[ "$1" == "-t" || "$1" == "--traffic" && -n "$2" ]]; then
   check_data
   CODE=$city_code
   traffic
+>>>>>>> Stashed changes
 
 else
 echo "$HELP"
